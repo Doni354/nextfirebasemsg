@@ -27,6 +27,7 @@ export default function ChatRoom() {
         {messagesSnapshot?.docs.map((doc) => (
             <ChatMessage
                 key={doc.id}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 message={doc.data() as any}
                 currentUser={user} />
         ))}
