@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import { User } from "firebase/auth";
@@ -9,17 +9,21 @@ type Props = {
 
 export default function UserProfile({ user }: Props) {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
       <Image
-        src={user.photoURL || "/default-avatar.png"}
+        src={user.photoURL || "/placeholder.svg?height=32&width=32&query=user+avatar"}
         alt="Profile"
-        width={80}
-        height={80}
-        className="rounded-full"
+        width={32}
+        height={32}
+        className="rounded-full ring-2 ring-gray-600"
         unoptimized
       />
-      <p className="mt-4 font-semibold text-center">{user.displayName}</p>
-      <p className="text-sm text-gray-500 text-center">{user.email}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-white truncate">
+          {user.displayName || "User"}
+        </p>
+        <p className="text-xs text-gray-400 truncate">{user.email}</p>
+      </div>
     </div>
   );
 }
