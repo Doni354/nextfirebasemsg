@@ -6,7 +6,7 @@ import { collection, query, orderBy, limit } from "firebase/firestore"
 import { db, auth } from "@/lib/firebase"
 import ChatMessage from "./ChatMessage"
 import MessageInput from "./MessageInput"
-
+import TypingIndicator from "./TypingIndicator"
 export default function ChatRoom() {
   const messagesRef = collection(db, "messages")
   const messagesQuery = query(messagesRef, orderBy("createdAt"), limit(100))
@@ -28,7 +28,7 @@ export default function ChatRoom() {
         <h1 className="text-m font-semibold text-white">Global Chat Room</h1>
         <p className="text-sm text-gray-400">{messagesSnapshot?.docs.length || 0} messages</p>
       </div>
-
+      
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar">
         {messagesSnapshot?.docs.length === 0 ? (
@@ -59,6 +59,7 @@ export default function ChatRoom() {
           ))
         )}
         <div ref={scrollRef} />
+        <TypingIndicator currentUserUid={user.uid} />
         <div className="h-12"></div>
       </div>
         
