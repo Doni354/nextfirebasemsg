@@ -53,16 +53,21 @@ function ChatMessageComponent({ message, currentUser }: Props) {
 
         <div
           className={`px-4 py-3 rounded-2xl ${
-            isOwnMessage ? "bg-blue-600 text-white rounded-br-md" : "bg-gray-700 text-gray-100 rounded-bl-md"
+            isOwnMessage
+              ? "bg-blue-600 text-white rounded-br-md"
+              : "bg-gray-700 text-gray-100 rounded-bl-md"
           }`}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words break-all">
+            {message.text}
+          </p>
           {isOwnMessage && (
             <span className="block mt-1 text-[10px] text-gray-200 opacity-70">
               {message.status === "delivered" ? "✓✓ Delivered" : "✓ Sent"}
             </span>
           )}
         </div>
+
       </div>
     </motion.div>
   )

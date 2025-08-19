@@ -67,7 +67,7 @@ export default function MessageInput() {
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-4">
+    <div className="absolute bottom-0 left-0 right-0 p-4 pl-64 flex justify-center">
       <form
         onSubmit={sendMessage}
         className="flex items-end gap-2 max-w-3xl mx-auto w-full"
