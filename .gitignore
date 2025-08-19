@@ -44,3 +44,5 @@ next-env.d.ts
 
 # Firebase Log
 .firebase
+/.firebase
+/.firebase/
