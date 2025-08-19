@@ -1,25 +1,32 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { useCollection } from "react-firebase-hooks/firestore"
-import { collection, query, orderBy, limit } from "firebase/firestore"
-import { db, auth } from "@/lib/firebase"
-import ChatMessage from "./ChatMessage"
-import MessageInput from "./MessageInput"
-import TypingIndicator from "./TypingIndicator"
-export default function ChatRoom() {
-  const messagesRef = collection(db, "messages")
-  const messagesQuery = query(messagesRef, orderBy("createdAt"), limit(100))
+import { useEffect, useRef } from "react";
+import { useCollection } from "react-firebase-hooks/firestore";
+import { collection, query, orderBy, limit, where } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import ChatMessage from "./ChatMessage";
+import MessageInput from "./MessageInput";
+import TypingIndicator from "./TypingIndicator";
+import { useSearchParams } from "next/navigation";
 
-  const [messagesSnapshot] = useCollection(messagesQuery)
-  const scrollRef = useRef<HTMLDivElement>(null)
+export default function ChatRoom() {
+  const searchParams = useSearchParams();
+  const chatId = searchParams.get("id"); // ambil chatId dari query param
+
+  const messagesRef = collection(db, "messages");
+  const messagesQuery = chatId
+    ? query(messagesRef, where("chatId", "==", chatId), orderBy("createdAt"), limit(100))
+    : null;
+
+  const [messagesSnapshot] = useCollection(messagesQuery);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messagesSnapshot])
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messagesSnapshot]);
 
-  const user = auth.currentUser
-  if (!user) return null
+  const user = auth.currentUser;
+  if (!user) return null;
 
   return (
     <div className="flex flex-col h-full bg-gray-800">
@@ -28,10 +35,9 @@ export default function ChatRoom() {
         <h1 className="text-m font-semibold text-white">Global Chat Room</h1>
         <p className="text-sm text-gray-400">{messagesSnapshot?.docs.length || 0} messages</p>
       </div>
-      
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar">
-        {messagesSnapshot?.docs.length === 0 ? (
+        {(!messagesSnapshot || messagesSnapshot?.docs.length === 0) ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -66,5 +72,5 @@ export default function ChatRoom() {
       {/* Message Input */}
       <MessageInput />
     </div>
-  )
+  );
 }

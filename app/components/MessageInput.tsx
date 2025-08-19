@@ -1,57 +1,70 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { db, auth } from "@/lib/firebase"
-import { collection, addDoc, serverTimestamp, setDoc, doc, deleteDoc } from "firebase/firestore"
-import { Send } from "lucide-react"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { db, auth } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp, setDoc, doc, deleteDoc } from "firebase/firestore";
+import { Send } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
 
 export default function MessageInput() {
-  const [text, setText] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [text, setText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  let chatId = searchParams.get("id");
 
   // Update typing status
   useEffect(() => {
-    const user = auth.currentUser
-    if (!user) return
+    const user = auth.currentUser;
+    if (!user) return;
 
     if (text.trim()) {
       setDoc(doc(db, "typing", user.uid), {
         displayName: user.displayName,
         uid: user.uid,
         timestamp: serverTimestamp(),
-      })
+      });
     } else {
-      deleteDoc(doc(db, "typing", user.uid))
+      deleteDoc(doc(db, "typing", user.uid));
     }
 
     return () => {
-      deleteDoc(doc(db, "typing", user.uid))
-    }
-  }, [text])
+      deleteDoc(doc(db, "typing", user.uid));
+    };
+  }, [text]);
 
   const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const user = auth.currentUser
-    if (!user || !text.trim() || isLoading) return
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user || !text.trim() || isLoading) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
+      // 🔥 generate id baru kalau kosong
+      if (!chatId) {
+        chatId = `${uuidv4()}-${Date.now()}`;
+        router.push(`/dashboard?id=${chatId}`);
+      }
+
       await addDoc(collection(db, "messages"), {
         text: text.trim(),
         uid: user.uid,
         photoURL: user.photoURL,
         displayName: user.displayName,
         createdAt: serverTimestamp(),
-        status: "sent", // default status
-      })
-      setText("")
+        chatId,
+        status: "sent",
+      });
+      setText("");
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("Error sending message:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -96,5 +109,5 @@ export default function MessageInput() {
         </div>
       </form>
     </div>
-  )
+  );
 }

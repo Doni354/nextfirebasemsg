@@ -8,15 +8,17 @@ import React from "react"
 
 type Props = {
   message: {
-    text: string
-    uid: string
-    photoURL: string
-    displayName: string
-    createdAt: Timestamp
-    status?: "sent" | "delivered"
-  }
-  currentUser: User
-}
+    text: string;
+    uid: string;
+    photoURL: string;
+    displayName: string;
+    createdAt: Timestamp;
+    chatId?: string; // tambahin
+    status?: "sent" | "delivered";
+  };
+  currentUser: User;
+};
+
 
 function ChatMessageComponent({ message, currentUser }: Props) {
   const isOwnMessage = message.uid === currentUser.uid
