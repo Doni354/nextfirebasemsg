@@ -1,77 +1,108 @@
-"use client"
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 
-import Image from "next/image"
-import type { User } from "firebase/auth"
-import { Timestamp } from "firebase/firestore"
-import { motion } from "framer-motion"
-import React from "react"
-
-type Props = {
-  message: {
-    text: string;
-    uid: string;
-    photoURL: string;
-    displayName: string;
-    createdAt: Timestamp;
-    chatId?: string; // tambahin
-    status?: "sent" | "delivered";
-  };
-  currentUser: User;
-};
-
-
-function ChatMessageComponent({ message, currentUser }: Props) {
-  const isOwnMessage = message.uid === currentUser.uid
+export default function ChatMessage({ message, currentUser }: any) {
+  const isUser = message.uid === currentUser.uid;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className={`flex items-start gap-3 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}
-    >
-      <div className="flex-shrink-0">
-        <Image
-          src={message.photoURL || "/placeholder.svg?height=40&width=40"}
-          alt={message.displayName || "User"}
-          width={40}
-          height={40}
-          className="rounded-full ring-2 ring-gray-600"
-          unoptimized
-        />
-      </div>
-
-      <div className={`flex flex-col max-w-xs lg:max-w-md ${isOwnMessage ? "items-end" : "items-start"}`}>
-        <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}>
-          <span className="text-sm font-medium text-gray-300">{isOwnMessage ? "You" : message.displayName}</span>
-          <span className="text-xs text-gray-500">
-            {message.createdAt?.toDate
-              ? message.createdAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-              : ""}
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-lg px-4 py-2 rounded-2xl text-sm ${
+          isUser
+            ? "bg-blue-600 text-white rounded-br-none"
+            : "bg-gray-700 text-white rounded-bl-none"
+        }`}
+      >
+        {message.isLoading ? (
+          <span className="animate-pulse text-gray-400">
+            AI sedang mengetik...
           </span>
-        </div>
+        ) : (
+          <div className="prose prose-invert max-w-none">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+              components={{
+                // ✅ Custom checkbox hijau
+                input: ({ node, ...props }) => {
+                  if (props.type === "checkbox") {
+                    const checked = props.checked as boolean;
+                    return (
+                      <span
+                        className={`w-4 h-4 inline-flex items-center justify-center rounded border text-xs mr-2 ${
+                          checked
+                            ? "bg-green-500 border-green-500 text-white"
+                            : "bg-white border-gray-400"
+                        }`}
+                      >
+                        {checked && "✓"}
+                      </span>
+                    );
+                  }
+                  return <input {...props} />;
+                },
 
-        <div
-          className={`px-4 py-3 rounded-2xl ${
-            isOwnMessage
-              ? "bg-blue-600 text-white rounded-br-md"
-              : "bg-gray-700 text-gray-100 rounded-bl-md"
-          }`}
-        >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words break-all">
-            {message.text}
-          </p>
-          {isOwnMessage && (
-            <span className="block mt-1 text-[10px] text-gray-200 opacity-70">
-              {message.status === "delivered" ? "✓✓ Delivered" : "✓ Sent"}
-            </span>
-          )}
-        </div>
+                // Heading
+                h1: ({ node, ...props }) => (
+                  <h1 className="text-2xl font-bold mt-3 mb-2" {...props} />
+                ),
+                h2: ({ node, ...props }) => (
+                  <h2 className="text-xl font-semibold mt-3 mb-2" {...props} />
+                ),
+                h3: ({ node, ...props }) => (
+                  <h3 className="text-lg font-medium mt-2 mb-1" {...props} />
+                ),
 
+                // List
+                ul: ({ node, ...props }) => (
+                  <ul className="list-disc list-inside space-y-1 ml-4" {...props} />
+                ),
+                ol: ({ node, ...props }) => (
+                  <ol className="list-decimal list-inside space-y-1 ml-4" {...props} />
+                ),
+
+                // Blockquote
+                blockquote: ({ node, ...props }) => (
+                  <blockquote
+                    className="border-l-4 border-gray-500 pl-3 italic text-gray-300"
+                    {...props}
+                  />
+                ),
+
+                // Link
+                a: ({ node, ...props }) => (
+                  <a
+                    {...props}
+                    className="text-blue-400 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                ),
+
+                // Code
+                code({ node, inline, className, children, ...props }) {
+                  return !inline ? (
+                    <pre className="bg-black/40 p-2 rounded-lg overflow-x-auto text-sm">
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    </pre>
+                  ) : (
+                    <code className="bg-black/40 px-1 rounded" {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {message.text}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
-    </motion.div>
-  )
+    </div>
+  );
 }
-
-// Optimasi avatar & re-render
-export default React.memo(ChatMessageComponent)

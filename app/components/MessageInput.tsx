@@ -1,12 +1,11 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, setDoc, doc, deleteDoc } from "firebase/firestore";
-import { Send } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function MessageInput() {
   const [text, setText] = useState("");
@@ -16,52 +15,56 @@ export default function MessageInput() {
 
   let chatId = searchParams.get("id");
 
-  // Update typing status
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    if (text.trim()) {
-      setDoc(doc(db, "typing", user.uid), {
-        displayName: user.displayName,
-        uid: user.uid,
-        timestamp: serverTimestamp(),
-      });
-    } else {
-      deleteDoc(doc(db, "typing", user.uid));
-    }
-
-    return () => {
-      deleteDoc(doc(db, "typing", user.uid));
-    };
-  }, [text]);
-
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const user = auth.currentUser;
     if (!user || !text.trim() || isLoading) return;
 
     setIsLoading(true);
+
     try {
-      // 🔥 generate id baru kalau kosong
+      // generate chatId kalau belum ada
       if (!chatId) {
         chatId = `${uuidv4()}-${Date.now()}`;
         router.push(`/dashboard?id=${chatId}`);
       }
 
+      // generate questionId baru
+      const questionId = uuidv4();
+
+      // simpan pesan user
       await addDoc(collection(db, "messages"), {
         text: text.trim(),
         uid: user.uid,
-        photoURL: user.photoURL,
-        displayName: user.displayName,
-        createdAt: serverTimestamp(),
         chatId,
-        status: "sent",
+        questionId,
+        createdAt: serverTimestamp(),
+        role: "user",
       });
+
+      // simpan placeholder AI (loading)
+      const aiDocRef = await addDoc(collection(db, "messages"), {
+        text: "",
+        uid: "openai-bot",
+        chatId,
+        questionId,
+        createdAt: serverTimestamp(),
+        role: "assistant",
+        isLoading: true,
+      });
+
+      // 🔥 Local dummy response: update AI setelah delay
+      setTimeout(async () => {
+        await updateDoc(doc(db, "messages", aiDocRef.id), {
+          text: "Halo 👋 ini jawaban dummy AI **(local test)**\n\n- Bisa **bold**\n- Bisa list\n- Markdown jalan ✅",
+          isLoading: false,
+        });
+        setIsLoading(false);
+      }, 2000);
+
       setText("");
     } catch (error) {
       console.error("Error sending message:", error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -77,9 +80,14 @@ export default function MessageInput() {
             className="w-full bg-[#40414F] text-white placeholder-gray-400 rounded-2xl px-4 py-3 pr-12 resize-none 
                        focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent 
                        transition-all duration-200 text-sm md:text-base max-h-40 overflow-y-auto 
-                       chat-input-scrollbar"
-            placeholder="Ketik pesan Anda..."
+                       chat-input-scrollbar disabled:opacity-50"
+            placeholder={
+              isLoading
+                ? "Menunggu jawaban AI..."
+                : "Ketik pertanyaan Anda..."
+            }
             value={text}
+            disabled={isLoading}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -92,10 +100,11 @@ export default function MessageInput() {
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = "auto";
-              target.style.height = Math.min(target.scrollHeight, 160) + "px";
+              target.style.height =
+                Math.min(target.scrollHeight, 160) + "px";
             }}
           />
-          <div className="absolute right-2 bottom-2 p-1 bg-gradient-to-r from-transparent to-[#40414F] rounded-full">
+          <div className="absolute right-2 bottom-2 p-1">
             <button
               type="submit"
               disabled={!text.trim() || isLoading}
@@ -103,7 +112,7 @@ export default function MessageInput() {
                          disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full 
                          shadow-md transition-all duration-200"
             >
-              <Send className="w-5 h-5" />
+              ➤
             </button>
           </div>
         </div>
