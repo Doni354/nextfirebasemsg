@@ -91,19 +91,22 @@ export const markdownComponents: Components = {
   },
 
   // ✅ Table
-  table: ({ node, ...props }: GenericProps) => (
-    <table
-      className="table-auto border-collapse border border-gray-500 my-3"
-      {...props}
-    />
+table: ({ node, ...props }: GenericProps) => (
+    <div className="overflow-x-auto my-3">
+      <table
+        className="table-auto border-collapse border border-gray-500 w-full text-sm"
+        {...props}
+      />
+    </div>
   ),
   thead: ({ node, ...props }: GenericProps) => (
     <thead className="bg-gray-600" {...props} />
   ),
   th: ({ node, ...props }: GenericProps) => (
-    <th className="border border-gray-500 px-3 py-1 text-left" {...props} />
+    <th className="border border-gray-500 px-3 py-1 text-left whitespace-nowrap" {...props} />
   ),
   td: ({ node, ...props }: GenericProps) => (
-    <td className="border border-gray-500 px-3 py-1" {...props} />
+    <td className="border border-gray-500 px-3 py-1 whitespace-nowrap" {...props} />
   ),
+  
 };
