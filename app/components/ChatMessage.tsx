@@ -92,19 +92,32 @@ export default function ChatMessage({ message, currentUser }: any) {
                 ),
 
                 // ✅ Code block & inline
-                code({ node, inline, className, children, ...props }) {
-                  return !inline ? (
-                    <pre className="bg-black/40 p-2 rounded-lg overflow-x-auto text-sm">
-                      <code className={className} {...props}>
-                        {children}
-                      </code>
-                    </pre>
-                  ) : (
-                    <code className="bg-black/40 px-1 rounded" {...props}>
-                      {children}
-                    </code>
-                  );
-                },
+                // ✅ Code block & inline
+code({
+  node,
+  inline,
+  className,
+  children,
+  ...props
+}: {
+  node: any;
+  inline?: boolean;
+  className?: string;
+  children: React.ReactNode;
+  [key: string]: any;
+}) {
+  return !inline ? (
+    <pre className="bg-black/40 p-2 rounded-lg overflow-x-auto text-sm">
+      <code className={className} {...props}>
+        {children}
+      </code>
+    </pre>
+  ) : (
+    <code className="bg-black/40 px-1 rounded" {...props}>
+      {children}
+    </code>
+  );
+},
 
                 // ✅ Table
                 table: ({ node, ...props }) => (
