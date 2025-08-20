@@ -12,6 +12,85 @@ export default function MessageInput() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const dummyData = `# Heading 1 (Paling Besar)
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+###### Heading 6 (Paling Kecil)
+
+---
+
+# Halo 👋
+Ini jawaban **dummy AI** (*local test*)
+
+---
+
+## Formatting
+- Bisa **bold**
+- Bisa *italic*
+- Bisa ~~strikethrough~~
+- Bisa [link](https://example.com)
+
+---
+
+## List Biasa
+1. Satu
+2. Dua
+3. Tiga
+
+### Nested List
+- Item 1
+  - Sub item 1
+  - Sub item 2
+- Item 2
+  - Sub item 2.1
+
+---
+
+## Checklist
+- [x] Task selesai
+- [ ] Task belum selesai
+- [ ] Task pending
+
+---
+
+## Code Block
+\`\`\`js
+function hello() {
+  console.log("Hello World 🚀");
+}
+\`\`\`
+
+Inline code: \`npm install next\`
+
+---
+
+## Quote
+> "Belajar coding itu seperti naik sepeda 🚲, jatuh bangun tapi akhirnya lancar."
+
+---
+
+## Table
+| Fitur         | Status  |
+|---------------|---------|
+| Heading       | ✅      |
+| Bold/Italic   | ✅      |
+| List          | ✅      |
+| Nested List   | ✅      |
+| Checkbox      | ✅      |
+| Code Block    | ✅      |
+| Quote         | ✅      |
+| Table         | ✅      |
+| Image         | ✅      |
+| HR Line       | ✅      |
+
+---
+
+## Gambar
+![Next.js Logo](https://images.seeklogo.com/logo-png/32/1/next-js-logo-png_seeklogo-321806.png)
+`;
+
 
   let chatId = searchParams.get("id");
 
@@ -56,7 +135,7 @@ export default function MessageInput() {
       // 🔥 Local dummy response: update AI setelah delay
       setTimeout(async () => {
         await updateDoc(doc(db, "messages", aiDocRef.id), {
-          text: "Halo 👋 ini jawaban dummy AI **(local test)**\n\n- Bisa **bold**\n- Bisa list\n- Markdown jalan ✅",
+          text: dummyData,
           isLoading: false,
         });
         setIsLoading(false);
