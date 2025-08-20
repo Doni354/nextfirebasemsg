@@ -22,7 +22,7 @@ export default function MessageInput() {
 ---
 
 # Halo 👋
-Ini jawaban **dummy AI** (*local test*)
+Ini jawaban **dummy AI** (*local test*) dengan berbagai macam format.
 
 ---
 
@@ -31,6 +31,8 @@ Ini jawaban **dummy AI** (*local test*)
 - Bisa *italic*
 - Bisa ~~strikethrough~~
 - Bisa [link](https://example.com)
+- Bisa **_kombinasi bold + italic_**
+- Bisa \`inline code\`
 
 ---
 
@@ -51,7 +53,6 @@ Ini jawaban **dummy AI** (*local test*)
 ## Checklist
 - [x] Task selesai
 - [ ] Task belum selesai
-- [ ] Task pending
 
 ---
 
@@ -62,34 +63,53 @@ function hello() {
 }
 \`\`\`
 
+\`\`\`python
+def greet(name):
+    return f"Halo, {name}! 👋"
+
+print(greet("Doni"))
+\`\`\`
+
 Inline code: \`npm install next\`
 
 ---
 
 ## Quote
 > "Belajar coding itu seperti naik sepeda 🚲, jatuh bangun tapi akhirnya lancar."
+>
+> -- Dummy AI
 
 ---
 
 ## Table
-| Fitur         | Status  |
-|---------------|---------|
-| Heading       | ✅      |
-| Bold/Italic   | ✅      |
-| List          | ✅      |
-| Nested List   | ✅      |
-| Checkbox      | ✅      |
-| Code Block    | ✅      |
-| Quote         | ✅      |
-| Table         | ✅      |
-| Image         | ✅      |
-| HR Line       | ✅      |
+| Fitur         | Status  | Catatan              |
+|---------------|---------|----------------------|
+| Heading       | ✅      | Semua level          |
+| Bold/Italic   | ✅      | Termasuk kombinasi   |
+| List          | ✅      | Ordered & Unordered  |
+| Nested List   | ✅      | Multi level          |
+| Checkbox      | ✅      | Support custom style |
+| Code Block    | ✅      | Multi bahasa         |
+| Quote         | ✅      | Blockquote styled    |
+| Table         | ✅      | Bisa ada catatan     |
+| Image         | ✅      | Bisa ditambah alt    |
+| HR Line       | ✅      | ---                  |
 
 ---
 
 ## Gambar
 ![Next.js Logo](https://images.seeklogo.com/logo-png/32/1/next-js-logo-png_seeklogo-321806.png)
+
+*Caption: Logo Next.js untuk contoh.*
+
+---
+
+## Horizontal Rules
+---
+***
+___
 `;
+
 
 
   let chatId = searchParams.get("id");
