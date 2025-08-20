@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function Home() {
@@ -20,10 +20,16 @@ export default function Home() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (err) {
-      console.error("Login error:", err);
+    } catch (err: any) {
+      if (err.code === "auth/popup-blocked") {
+        // fallback pakai redirect
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Login error:", err);
+      }
     }
   };
+  
 
   return (
     <main className="flex items-center justify-center h-screen bg-gray-100">
