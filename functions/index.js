@@ -1,32 +1,77 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const cors = require("cors")({ origin: true });
+const { onRequest } = require("firebase-functions/v2/https");
+const { getFirestore } = require("firebase-admin/firestore");
+const admin = require("firebase-admin");
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const db = getFirestore();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+exports.generateAIResponse = onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      const { chatId, questionId, aiDocId, userText } = req.body;
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+      if (!chatId || !questionId || !aiDocId) {
+        return res.status(400).json({ error: "chatId, questionId, aiDocId required" });
+      }
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+      // 🔥 Dummy response dalam format Markdown
+      const dummyResponse = `# 🤖 Dummy AI Response
+Halo, ini **dummy jawaban** dari Cloud Function (Gen 2).
+
+---
+
+## 📦 Data yang diterima
+| Field       | Value |
+|-------------|-------|
+| **chatId**  | \`${chatId}\` |
+| **questionId** | \`${questionId}\` |
+| **aiDocId** | \`${aiDocId}\` |
+| **userText** | "${userText}" |
+
+---
+
+## 🔤 Format Demo
+- **Bold**
+- *Italic*
+- ~~Strikethrough~~
+- [Link](https://firebase.google.com)
+- \`inline code\`
+
+---
+
+## 📋 Checklist
+- [x] Firestore update berhasil
+- [ ] Integrasi OpenAI (next step)
+
+---
+
+## 🖥️ Code Example
+\`\`\`js
+function reply(input) {
+  return "Halo, " + input + "!";
+}
+console.log(reply("${userText}"));
+\`\`\`
+
+---
+
+> "Belajar Cloud Functions itu asik 🚀"
+`;
+
+      // Update dokumen AI placeholder
+      await db.collection("messages").doc(aiDocId).update({
+        text: dummyResponse,
+        isLoading: false,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return res.json({ success: true });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+});

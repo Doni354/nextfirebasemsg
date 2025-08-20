@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -12,106 +12,6 @@ export default function MessageInput() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const dummyData = `# Heading 1 (Paling Besar)
-## Heading 2
-### Heading 3
-#### Heading 4
-##### Heading 5
-###### Heading 6 (Paling Kecil)
-
----
-
-# Halo 👋
-Ini jawaban **dummy AI** (*local test*) dengan berbagai macam format.
-
----
-
-## Formatting
-- Bisa **bold**
-- Bisa *italic*
-- Bisa ~~strikethrough~~
-- Bisa [link](https://example.com)
-- Bisa **_kombinasi bold + italic_**
-- Bisa \`inline code\`
-
----
-
-## List Biasa
-1. Satu
-2. Dua
-3. Tiga
-
-### Nested List
-- Item 1
-  - Sub item 1
-  - Sub item 2
-- Item 2
-  - Sub item 2.1
-
----
-
-## Checklist
-- [x] Task selesai
-- [ ] Task belum selesai
-
----
-
-## Code Block
-\`\`\`js
-function hello() {
-  console.log("Hello World 🚀");
-}
-\`\`\`
-
-\`\`\`python
-def greet(name):
-    return f"Halo, {name}! 👋"
-
-print(greet("Doni"))
-\`\`\`
-
-Inline code: \`npm install next\`
-
----
-
-## Quote
-> "Belajar coding itu seperti naik sepeda 🚲, jatuh bangun tapi akhirnya lancar."
->
-> -- Dummy AI
-
----
-
-## Table
-| Fitur         | Status  | Catatan              |
-|---------------|---------|----------------------|
-| Heading       | ✅      | Semua level          |
-| Bold/Italic   | ✅      | Termasuk kombinasi   |
-| List          | ✅      | Ordered & Unordered  |
-| Nested List   | ✅      | Multi level          |
-| Checkbox      | ✅      | Support custom style |
-| Code Block    | ✅      | Multi bahasa         |
-| Quote         | ✅      | Blockquote styled    |
-| Table         | ✅      | Bisa ada catatan     |
-| Image         | ✅      | Bisa ditambah alt    |
-| HR Line       | ✅      | ---                  |
-
----
-
-## Gambar
-![Next.js Logo](https://images.seeklogo.com/logo-png/32/1/next-js-logo-png_seeklogo-321806.png)
-
-*Caption: Logo Next.js untuk contoh.*
-
----
-
-## Horizontal Rules
----
-***
-___
-`;
-
-
-
   let chatId = searchParams.get("id");
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -141,7 +41,7 @@ ___
         role: "user",
       });
 
-      // simpan placeholder AI (loading)
+      // simpan AI placeholder
       const aiDocRef = await addDoc(collection(db, "messages"), {
         text: "",
         uid: "openai-bot",
@@ -152,16 +52,24 @@ ___
         isLoading: true,
       });
 
-      // 🔥 Local dummy response: update AI setelah delay
-      setTimeout(async () => {
-        await updateDoc(doc(db, "messages", aiDocRef.id), {
-          text: dummyData,
-          isLoading: false,
-        });
-        setIsLoading(false);
-      }, 2000);
+      // 🔥 Panggil Cloud Function
+      await fetch(
+        "https://us-central1-banded-chimera-444811-a5.cloudfunctions.net/generateAIResponse",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chatId,
+            questionId,
+            aiDocId: aiDocRef.id,
+            userText: text.trim(),
+          }),
+        }
+      );
 
+      // ✅ Reset input & enable lagi
       setText("");
+      setIsLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
       setIsLoading(false);
@@ -182,7 +90,7 @@ ___
                        chat-input-scrollbar disabled:opacity-50"
             placeholder={
               isLoading
-                ? "Menunggu jawaban AI..."
+                ? "Mengirim pesan..."
                 : "Ketik pertanyaan Anda..."
             }
             value={text}
